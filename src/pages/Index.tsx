@@ -4,341 +4,624 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
-interface Anime {
+interface Product {
   id: number;
-  title: string;
-  titleRu: string;
+  name: string;
+  price: number;
   image: string;
+  category: string;
   rating: number;
-  year: number;
-  episodes: number;
-  genre: string[];
-  status: string;
-  description: string;
+  reviews: number;
+  inStock: boolean;
+  discount?: number;
 }
 
-const mockAnime: Anime[] = [
+interface CartItem extends Product {
+  quantity: number;
+}
+
+interface Order {
+  id: string;
+  date: string;
+  total: number;
+  status: string;
+  items: CartItem[];
+}
+
+const products: Product[] = [
   {
     id: 1,
-    title: 'Demon Slayer: Infinity Castle',
-    titleRu: 'Клинок, рассекающий демонов: Замок бесконечности',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/016ea03e-a55e-4b9a-8818-692ab1720999.jpg',
-    rating: 9.2,
-    year: 2025,
-    episodes: 24,
-    genre: ['Экшен', 'Фэнтези', 'Сёнэн'],
-    status: 'Онгоинг',
-    description: 'Продолжение легендарной истории о Танджиро и его друзьях в финальной арке'
+    name: 'iPhone 15 Pro Max',
+    price: 119990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/05a67832-e58b-4957-8898-43e971bb36c6.jpg',
+    category: 'Электроника',
+    rating: 4.8,
+    reviews: 234,
+    inStock: true,
+    discount: 10
   },
   {
     id: 2,
-    title: 'Jujutsu Kaisen Season 3',
-    titleRu: 'Магическая битва 3',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/647f0f01-ca51-4d9e-a091-1ae734d341fc.jpg',
-    rating: 9.0,
-    year: 2025,
-    episodes: 12,
-    genre: ['Экшен', 'Сёнэн', 'Сверхъестественное'],
-    status: 'Онгоинг',
-    description: 'Юдзи и его товарищи продолжают борьбу с проклятиями'
+    name: 'AirPods Pro 2',
+    price: 24990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/33c3faee-4137-4047-a2d0-8dfbb05b24b8.jpg',
+    category: 'Электроника',
+    rating: 4.9,
+    reviews: 567,
+    inStock: true
   },
   {
     id: 3,
-    title: 'Cyberpunk Chronicles',
-    titleRu: 'Киберпанк: Хроники',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/3945599c-4815-488d-8c09-9e5183f1e29a.jpg',
-    rating: 8.8,
-    year: 2025,
-    episodes: 13,
-    genre: ['Фантастика', 'Экшен', 'Киберпанк'],
-    status: 'Завершён',
-    description: 'Футуристическая история о хакере в неоновом городе будущего'
+    name: 'Nike Air Max',
+    price: 12990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/2f2e1b48-bce8-44d8-8711-71c6dd945941.jpg',
+    category: 'Одежда',
+    rating: 4.7,
+    reviews: 189,
+    inStock: true,
+    discount: 15
   },
   {
     id: 4,
-    title: 'My Hero Academia Season 7',
-    titleRu: 'Моя геройская академия 7',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/016ea03e-a55e-4b9a-8818-692ab1720999.jpg',
-    rating: 8.7,
-    year: 2025,
-    episodes: 25,
-    genre: ['Экшен', 'Сёнэн', 'Супергерои'],
-    status: 'Онгоинг',
-    description: 'Деку и класс 1-A сталкиваются с новыми угрозами'
+    name: 'MacBook Pro 16"',
+    price: 249990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/05a67832-e58b-4957-8898-43e971bb36c6.jpg',
+    category: 'Электроника',
+    rating: 4.9,
+    reviews: 421,
+    inStock: true
   },
   {
     id: 5,
-    title: 'Sword Art Online: Unital Ring',
-    titleRu: 'Мастера меча онлайн: Унитал Ринг',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/647f0f01-ca51-4d9e-a091-1ae734d341fc.jpg',
-    rating: 8.5,
-    year: 2025,
-    episodes: 24,
-    genre: ['Фэнтези', 'Экшен', 'Романтика'],
-    status: 'Онгоинг',
-    description: 'Кирито и Асуна исследуют новый загадочный мир виртуальной реальности'
+    name: 'Sony WH-1000XM5',
+    price: 29990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/33c3faee-4137-4047-a2d0-8dfbb05b24b8.jpg',
+    category: 'Электроника',
+    rating: 4.8,
+    reviews: 312,
+    inStock: false
   },
   {
     id: 6,
-    title: 'One Piece: Elbaf Arc',
-    titleRu: 'Ван-Пис: Арка Эльбаф',
-    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/3945599c-4815-488d-8c09-9e5183f1e29a.jpg',
-    rating: 9.1,
-    year: 2025,
-    episodes: 50,
-    genre: ['Приключения', 'Экшен', 'Комедия'],
-    status: 'Онгоинг',
-    description: 'Луффи и его команда достигают легендарного острова гигантов'
+    name: 'Adidas Ultraboost',
+    price: 15990,
+    image: 'https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/2f2e1b48-bce8-44d8-8711-71c6dd945941.jpg',
+    category: 'Одежда',
+    rating: 4.6,
+    reviews: 156,
+    inStock: true,
+    discount: 20
   }
 ];
 
-const genres = ['Все жанры', 'Экшен', 'Фэнтези', 'Сёнэн', 'Сверхъестественное', 'Фантастика', 'Киберпанк', 'Супергерои', 'Романтика', 'Приключения', 'Комедия'];
+const categories = ['Все', 'Электроника', 'Одежда'];
 
 function Index() {
-  const [activeTab, setActiveTab] = useState('all');
-  const [selectedGenre, setSelectedGenre] = useState('Все жанры');
+  const { toast } = useToast();
+  const [activeCategory, setActiveCategory] = useState('Все');
   const [searchQuery, setSearchQuery] = useState('');
-  const [myList, setMyList] = useState<number[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  const filteredAnime = mockAnime.filter(anime => {
-    const matchesSearch = anime.titleRu.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          anime.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = selectedGenre === 'Все жанры' || anime.genre.includes(selectedGenre);
-    const matchesTab = activeTab === 'all' || 
-                       (activeTab === 'new' && anime.year === 2025) ||
-                       (activeTab === 'top' && anime.rating >= 9.0) ||
-                       (activeTab === 'mylist' && myList.includes(anime.id));
-    return matchesSearch && matchesGenre && matchesTab;
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    email: ''
   });
 
-  const toggleMyList = (id: number) => {
-    setMyList(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = activeCategory === 'Все' || product.category === activeCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    toast({
+      title: "Добавлено в корзину",
+      description: product.name,
+    });
+  };
+
+  const removeFromCart = (id: number) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id: number, quantity: number) => {
+    if (quantity < 1) return;
+    setCart(prev =>
+      prev.map(item => (item.id === id ? { ...item, quantity } : item))
     );
+  };
+
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev =>
+      prev.includes(id) ? prev.filter(fav => fav !== id) : [...prev, id]
+    );
+  };
+
+  const cartTotal = cart.reduce((sum, item) => {
+    const price = item.discount ? item.price * (1 - item.discount / 100) : item.price;
+    return sum + price * item.quantity;
+  }, 0);
+
+  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleCheckout = () => {
+    if (!formData.name || !formData.phone || !formData.address) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newOrder: Order = {
+      id: `ORDER-${Date.now()}`,
+      date: new Date().toLocaleDateString('ru-RU'),
+      total: cartTotal,
+      status: 'В обработке',
+      items: [...cart]
+    };
+
+    setOrders(prev => [newOrder, ...prev]);
+    setCart([]);
+    setCheckoutOpen(false);
+    setFormData({ name: '', phone: '', address: '', email: '' });
+
+    toast({
+      title: "Заказ оформлен!",
+      description: `Номер заказа: ${newOrder.id}`,
+    });
+  };
+
+  const getDiscountPrice = (product: Product) => {
+    return product.discount
+      ? product.price * (1 - product.discount / 100)
+      : product.price;
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <h1 className="text-2xl font-heading font-bold text-gradient">AnimeHub</h1>
-            <div className="hidden md:flex items-center gap-6">
-              <Button variant="ghost" className="text-foreground/80 hover:text-foreground">
-                <Icon name="Home" size={18} className="mr-2" />
-                Главная
-              </Button>
-              <Button variant="ghost" className="text-foreground/80 hover:text-foreground">
-                <Icon name="Grid3x3" size={18} className="mr-2" />
-                Каталог
-              </Button>
-              <Button variant="ghost" className="text-foreground/80 hover:text-foreground">
-                <Icon name="TrendingUp" size={18} className="mr-2" />
-                Топ
-              </Button>
-            </div>
+            <h1 className="text-2xl font-heading font-bold text-gradient">ShopHub</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
+
+          <div className="flex-1 max-w-xl mx-8 hidden md:block">
+            <div className="relative">
               <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Поиск аниме..." 
-                className="pl-10 w-64 bg-muted/50 border-border"
+              <Input
+                placeholder="Поиск товаров..."
+                className="pl-10 bg-muted/50 border-border"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="ghost" size="icon">
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Icon name="Heart" size={20} />
+                  {favorites.length > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">
+                      {favorites.length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Избранное</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  {favorites.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Избранное пусто
+                    </p>
+                  ) : (
+                    products
+                      .filter(p => favorites.includes(p.id))
+                      .map(product => (
+                        <Card key={product.id} className="p-3">
+                          <div className="flex gap-3">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm">{product.name}</h4>
+                              <p className="text-primary font-semibold">
+                                {getDiscountPrice(product).toLocaleString('ru-RU')} ₽
+                              </p>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleFavorite(product.id)}
+                            >
+                              <Icon name="X" size={18} />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Icon name="ShoppingCart" size={20} />
+                  {cartItemsCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary">
+                      {cartItemsCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-lg">
+                <SheetHeader>
+                  <SheetTitle>Корзина</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 flex flex-col h-full">
+                  {cart.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Корзина пуста
+                    </p>
+                  ) : (
+                    <>
+                      <div className="flex-1 overflow-auto space-y-4">
+                        {cart.map(item => (
+                          <Card key={item.id} className="p-4">
+                            <div className="flex gap-4">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-20 h-20 object-cover rounded"
+                              />
+                              <div className="flex-1">
+                                <h4 className="font-medium mb-1">{item.name}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  {item.discount && (
+                                    <span className="text-xs text-muted-foreground line-through">
+                                      {item.price.toLocaleString('ru-RU')} ₽
+                                    </span>
+                                  )}
+                                  <span className="text-primary font-semibold">
+                                    {getDiscountPrice(item).toLocaleString('ru-RU')} ₽
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  >
+                                    <Icon name="Minus" size={14} />
+                                  </Button>
+                                  <span className="w-8 text-center">{item.quantity}</span>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  >
+                                    <Icon name="Plus" size={14} />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 ml-auto"
+                                    onClick={() => removeFromCart(item.id)}
+                                  >
+                                    <Icon name="Trash2" size={14} />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="text-lg font-semibold">Итого:</span>
+                          <span className="text-2xl font-bold text-primary">
+                            {cartTotal.toLocaleString('ru-RU')} ₽
+                          </span>
+                        </div>
+                        <Button
+                          className="w-full"
+                          size="lg"
+                          onClick={() => setCheckoutOpen(true)}
+                        >
+                          Оформить заказ
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOrdersOpen(true)}
+            >
               <Icon name="User" size={20} />
             </Button>
           </div>
         </div>
       </nav>
 
-      <div className="pt-16">
-        <section className="relative h-[70vh] overflow-hidden">
-          <div className="absolute inset-0">
-            <img 
-              src="https://cdn.poehali.dev/projects/f776f285-da3f-4696-9e2b-0acaf17f714a/files/016ea03e-a55e-4b9a-8818-692ab1720999.jpg"
-              alt="Hero"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent" />
-          </div>
-          
-          <div className="relative container mx-auto px-4 h-full flex items-center">
-            <div className="max-w-2xl animate-fade-in">
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <Icon name="Star" size={14} className="mr-1" />
-                Хит сезона 2025
-              </Badge>
-              <h2 className="text-5xl md:text-7xl font-heading font-bold mb-4 leading-tight">
-                Demon Slayer:<br />
-                <span className="text-gradient">Infinity Castle</span>
-              </h2>
-              <p className="text-lg text-foreground/80 mb-6 max-w-xl">
-                Финальная арка легендарной истории. Танджиро и его друзья вступают в решающую битву в бесконечном замке демонов.
-              </p>
-              <div className="flex items-center gap-4 mb-6">
-                <Badge variant="outline" className="text-sm">
-                  <Icon name="Calendar" size={14} className="mr-1" />
-                  2025
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  <Icon name="Film" size={14} className="mr-1" />
-                  24 эпизода
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  <Icon name="Star" size={14} className="mr-1" />
-                  9.2
-                </Badge>
-              </div>
-              <div className="flex gap-3">
-                <Button size="lg" className="bg-primary hover:bg-primary/90">
-                  <Icon name="Play" size={20} className="mr-2" />
-                  Смотреть
-                </Button>
-                <Button size="lg" variant="outline" className="border-primary/30 hover:bg-primary/10">
-                  <Icon name="Plus" size={20} className="mr-2" />
-                  В список
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+      <div className="md:hidden px-4 py-3 border-b border-border">
+        <div className="relative">
+          <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Поиск товаров..."
+            className="pl-10 bg-muted/50 border-border"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <section className="container mx-auto px-4 py-12">
-          <div className="mb-8">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="bg-muted/50 p-1">
-                <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  Все аниме
+      <section className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-heading font-bold mb-6">Каталог товаров</h2>
+          <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+            <TabsList className="bg-muted/50">
+              {categories.map(cat => (
+                <TabsTrigger
+                  key={cat}
+                  value={cat}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  {cat}
                 </TabsTrigger>
-                <TabsTrigger value="new" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <Icon name="Sparkles" size={16} className="mr-2" />
-                  Новинки 2025
-                </TabsTrigger>
-                <TabsTrigger value="top" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <Icon name="Trophy" size={16} className="mr-2" />
-                  Топ
-                </TabsTrigger>
-                <TabsTrigger value="mylist" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <Icon name="Heart" size={16} className="mr-2" />
-                  Мой список ({myList.length})
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                <SelectTrigger className="w-full md:w-[200px] bg-muted/50 border-border">
-                  <SelectValue placeholder="Жанр" />
-                </SelectTrigger>
-                <SelectContent>
-                  {genres.map(genre => (
-                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="md:hidden relative flex-1">
-                <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  placeholder="Поиск..." 
-                  className="pl-10 bg-muted/50 border-border"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product, index) => (
+            <Card
+              key={product.id}
+              className="group overflow-hidden border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="relative aspect-square overflow-hidden bg-muted/30">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
+                {product.discount && (
+                  <Badge className="absolute top-3 left-3 bg-destructive">
+                    -{product.discount}%
+                  </Badge>
+                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={`absolute top-3 right-3 backdrop-blur-sm ${
+                    favorites.includes(product.id)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background/80'
+                  }`}
+                  onClick={() => toggleFavorite(product.id)}
+                >
+                  <Icon name="Heart" size={18} />
+                </Button>
+              </div>
+
+              <div className="p-4">
+                <Badge variant="outline" className="mb-2 text-xs">
+                  {product.category}
+                </Badge>
+                <h3 className="font-heading font-semibold text-lg mb-2 line-clamp-1">
+                  {product.name}
+                </h3>
+
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-1">
+                    <Icon name="Star" size={14} className="text-yellow-500 fill-yellow-500" />
+                    <span className="text-sm font-medium">{product.rating}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    ({product.reviews} отзывов)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  {product.discount ? (
+                    <>
+                      <span className="text-sm text-muted-foreground line-through">
+                        {product.price.toLocaleString('ru-RU')} ₽
+                      </span>
+                      <span className="text-xl font-bold text-primary">
+                        {getDiscountPrice(product).toLocaleString('ru-RU')} ₽
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xl font-bold text-primary">
+                      {product.price.toLocaleString('ru-RU')} ₽
+                    </span>
+                  )}
+                </div>
+
+                {product.inStock ? (
+                  <Button
+                    className="w-full"
+                    onClick={() => addToCart(product)}
+                  >
+                    <Icon name="ShoppingCart" size={18} className="mr-2" />
+                    В корзину
+                  </Button>
+                ) : (
+                  <Button className="w-full" disabled>
+                    Нет в наличии
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Оформление заказа</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            <div>
+              <h3 className="font-semibold mb-3">Ваш заказ</h3>
+              <div className="space-y-2">
+                {cart.map(item => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span>
+                      {item.name} x {item.quantity}
+                    </span>
+                    <span className="font-medium">
+                      {(getDiscountPrice(item) * item.quantity).toLocaleString('ru-RU')} ₽
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <Separator className="my-3" />
+              <div className="flex justify-between text-lg font-bold">
+                <span>Итого:</span>
+                <span className="text-primary">{cartTotal.toLocaleString('ru-RU')} ₽</span>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAnime.map((anime, index) => (
-              <Card 
-                key={anime.id} 
-                className="group relative overflow-hidden bg-card border-border hover:border-primary/50 transition-all duration-300 hover:scale-[1.02] animate-fade-in cursor-pointer"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="relative aspect-[2/3] overflow-hidden">
-                  <img 
-                    src={anime.image} 
-                    alt={anime.titleRu}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            <div>
+              <h3 className="font-semibold mb-3">Данные доставки</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Имя *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Иван Иванов"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                  
-                  <div className="absolute top-3 right-3 flex gap-2">
-                    <Badge className="bg-primary/90 backdrop-blur-sm">
-                      <Icon name="Star" size={12} className="mr-1" />
-                      {anime.rating}
-                    </Badge>
-                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="phone">Телефон *</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+7 (999) 123-45-67"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address">Адрес доставки *</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="example@mail.ru"
+                  />
+                </div>
+              </div>
+            </div>
 
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className={`absolute top-3 left-3 backdrop-blur-sm ${
-                      myList.includes(anime.id) 
-                        ? 'bg-primary/90 hover:bg-primary text-primary-foreground' 
-                        : 'bg-black/50 hover:bg-black/70'
-                    }`}
-                    onClick={() => toggleMyList(anime.id)}
-                  >
-                    <Icon name={myList.includes(anime.id) ? "Heart" : "Plus"} size={18} />
-                  </Button>
+            <Button className="w-full" size="lg" onClick={handleCheckout}>
+              Подтвердить заказ
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-heading font-semibold text-white text-lg mb-1 line-clamp-1">
-                      {anime.titleRu}
-                    </h3>
-                    <p className="text-white/70 text-sm mb-2 line-clamp-1">{anime.title}</p>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {anime.genre.slice(0, 2).map(g => (
-                        <Badge key={g} variant="secondary" className="text-xs bg-white/10 backdrop-blur-sm text-white border-0">
-                          {g}
-                        </Badge>
+      <Dialog open={ordersOpen} onOpenChange={setOrdersOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Личный кабинет</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <h3 className="font-semibold mb-4">История заказов</h3>
+            {orders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                У вас пока нет заказов
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {orders.map(order => (
+                  <Card key={order.id} className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-semibold">{order.id}</h4>
+                        <p className="text-sm text-muted-foreground">{order.date}</p>
+                      </div>
+                      <Badge>{order.status}</Badge>
+                    </div>
+                    <Separator className="my-3" />
+                    <div className="space-y-2 mb-3">
+                      {order.items.map(item => (
+                        <div key={item.id} className="flex justify-between text-sm">
+                          <span>
+                            {item.name} x {item.quantity}
+                          </span>
+                          <span>
+                            {(getDiscountPrice(item) * item.quantity).toLocaleString('ru-RU')} ₽
+                          </span>
+                        </div>
                       ))}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-white/60">
-                      <span className="flex items-center">
-                        <Icon name="Calendar" size={12} className="mr-1" />
-                        {anime.year}
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Итого:</span>
+                      <span className="text-primary">
+                        {order.total.toLocaleString('ru-RU')} ₽
                       </span>
-                      <span className="flex items-center">
-                        <Icon name="Film" size={12} className="mr-1" />
-                        {anime.episodes} эп.
-                      </span>
-                      <Badge className="text-xs bg-secondary/80 text-secondary-foreground">
-                        {anime.status}
-                      </Badge>
                     </div>
-                  </div>
-                </div>
-
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg">
-                    <Icon name="Play" size={20} className="mr-2" />
-                    Смотреть
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-
-          {filteredAnime.length === 0 && (
-            <div className="text-center py-20">
-              <Icon name="Search" size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-2xl font-heading font-semibold mb-2">Ничего не найдено</h3>
-              <p className="text-muted-foreground">Попробуйте изменить фильтры или поисковый запрос</p>
-            </div>
-          )}
-        </section>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
